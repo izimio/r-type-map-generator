@@ -19,6 +19,8 @@ import {
   ENTITIES_COLORS,
   SMOOTH_ORANGE,
 } from "./utils/constants";
+import ConfirmeModal from "./ConfirmModal";
+import toast from "react-hot-toast";
 
 interface ColorPalette {
   [key: string]: string;
@@ -74,7 +76,15 @@ const MapEditor: React.FC = () => {
     null
   );
   const [isJsonModalOpen, setIsJsonModalOpen] = useState(false);
+  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
   const [isPaletteModalOpen, setIsPaletteModalOpen] = useState(false);
+  const [confirmInfos, setConfirmInfos] = useState<{
+    text: string;
+    callback: () => void;
+  }>({
+    text: "",
+    callback: () => {},
+  });
   const [jsonContent, setJsonContent] = useState("");
   const [roundSelectedIdx, setRoundSelectedIdx] = useState(0);
   const [colorPalette, setColorPalette] = useState<ColorPalette>(() => {
@@ -84,6 +94,7 @@ const MapEditor: React.FC = () => {
     }
     return ENTITIES_COLORS;
   });
+  // Independent round selected
   const shownedRound = rounds[roundSelectedIdx];
 
   useEffect(() => {
@@ -143,6 +154,13 @@ const MapEditor: React.FC = () => {
     setIsJsonModalOpen(true);
   };
 
+  const createConfirmation = (text: string, callback: () => void) => {
+    setIsConfirmModalOpen(true);
+    setConfirmInfos({
+      text,
+      callback,
+    });
+  };
   // ===============  Rounds functions  ===============
 
   const addRound = () => {
@@ -173,6 +191,11 @@ const MapEditor: React.FC = () => {
   };
 
   const deleteRound = (roundIndex: number) => {
+    console.log("rounds", rounds);
+    if (rounds.length === 1) {
+      toast.error("You can't delete the last round");
+      return;
+    }
     setRounds((prevRounds) => {
       const newRounds = [...prevRounds];
       newRounds.splice(roundIndex, 1);
@@ -183,6 +206,7 @@ const MapEditor: React.FC = () => {
     });
     setRoundSelectedIdx(0);
   };
+
   const handleTileClick = (
     roundIndex: number,
     threshold: number,
@@ -223,6 +247,12 @@ const MapEditor: React.FC = () => {
             console.log("LAAA", newColorPalette);
             setColorPalette(newColorPalette);
           }}
+        />
+        <ConfirmeModal
+          isOpen={isConfirmModalOpen}
+          onClose={() => setIsConfirmModalOpen(false)}
+          text={confirmInfos.text}
+          callback={confirmInfos.callback}
         />
 
         <h1>R-TYPE | Map Editor</h1>
@@ -360,26 +390,20 @@ const MapEditor: React.FC = () => {
                 title="Delete all entities in the current round"
                 icon={<CleaningServicesIcon />}
                 callback={() => {
-                  if (
-                    window.confirm(
-                      "Are you sure you want to delete all entities in this round?"
-                    )
-                  ) {
-                    cleanWholeRound(roundSelectedIdx);
-                  }
+                  createConfirmation(
+                    "Are you sure you want to delete all entities in this round?",
+                    () => cleanWholeRound(roundSelectedIdx)
+                  );
                 }}
               />
               <WrappedIcon
                 title="Delete current round"
                 icon={<DeleteIcon />}
                 callback={() => {
-                  if (
-                    window.confirm(
-                      "Are you sure you want to delete all entities in this round?"
-                    )
-                  ) {
-                    deleteRound(roundSelectedIdx);
-                  }
+                  createConfirmation(
+                    "Are you sure you want to delete this round?",
+                    () => deleteRound(roundSelectedIdx)
+                  );
                 }}
               />
             </Box>

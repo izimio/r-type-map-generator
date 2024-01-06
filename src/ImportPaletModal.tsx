@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Modal, Box, Button, TextField } from "@mui/material";
+import { Modal, Box, Button } from "@mui/material";
 
 import toast from "react-hot-toast";
 
@@ -22,7 +22,7 @@ const PaletteModal: React.FC<PaletteModalProps> = ({
     ...colorPalette,
   });
 
-  const handleColorChange = (color: any, key: string) => {
+  const handleColorChange = (color: string, key: string) => {
     setUpdatedColorPalette((prevPalette) => ({
       ...prevPalette,
       [key]: color,
