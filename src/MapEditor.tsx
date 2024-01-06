@@ -1,7 +1,11 @@
 // src/MapEditor.tsx
 import React, { useState, useEffect } from "react";
-import { Box } from "@mui/material";
+import { Box, Icon } from "@mui/material";
 import JsonModal from "./JsonModal";
+import WrappedIcon from "./Icon";
+
+import CleaningServicesIcon from "@mui/icons-material/CleaningServices";
+import DeleteIcon from "@mui/icons-material/Delete";
 
 import {
   getLocalStorageItem,
@@ -67,13 +71,13 @@ const MapEditor: React.FC = () => {
     ];
   });
 
-  const [selectedEntity, setselectedEntity] = useState<EntityElement | null>(null);
+  const [selectedEntity, setselectedEntity] = useState<EntityElement | null>(
+    null
+  );
   const [isJsonModalOpen, setIsJsonModalOpen] = useState(false);
   const [jsonContent, setJsonContent] = useState("");
   const [roundSelectedIdx, setRoundSelectedIdx] = useState(0);
   const shownedRound = rounds[roundSelectedIdx];
-
-
 
   useEffect(() => {
     saveLocalStorageItem("rounds", rounds);
@@ -145,6 +149,25 @@ const MapEditor: React.FC = () => {
     });
   };
 
+  const cleanWholeRound = (roundIndex: number) => {
+    setRounds((prevRounds) => {
+      const newRounds = [...prevRounds];
+      newRounds[roundIndex].entities = {};
+      return newRounds;
+    });
+  };
+
+  const deleteRound = (roundIndex: number) => {
+    setRounds((prevRounds) => {
+      const newRounds = [...prevRounds];
+      newRounds.splice(roundIndex, 1);
+      newRounds.forEach((round, idx) => {
+        round.round = idx + 1;
+      });
+      return newRounds;
+    });
+    setRoundSelectedIdx(0);
+  };
   const handleTileClick = (
     roundIndex: number,
     threshold: number,
@@ -247,23 +270,6 @@ const MapEditor: React.FC = () => {
               width: "calc(100vw - 40px)",
             }}
           >
-            <label style={{ marginRight: 10 }}>
-              Grid Width:
-              <input
-                style={{
-                  marginLeft: 10,
-                  border: "1px solid black",
-                  height: 20,
-                  width: 100,
-                  cursor: "pointer",
-                }}
-                type="number"
-                value={shownedRound.gridWidth}
-                onChange={(e) =>
-                  changeRoundGridWidth(roundSelectedIdx, Number(e.target.value))
-                }
-              />
-            </label>
             <h2
               style={{
                 marginBottom: 0,
@@ -272,6 +278,7 @@ const MapEditor: React.FC = () => {
             >
               Round {shownedRound.round}
             </h2>
+
             <p
               style={{
                 marginTop: 0,
@@ -282,6 +289,69 @@ const MapEditor: React.FC = () => {
                 {Object.keys(shownedRound.entities).length}
               </span>
             </p>
+            <Box
+              sx={{
+                display: "flex",
+                gap: "10px",
+                marginBottom: "10px",
+                alignItems: "center",
+              }}
+            >
+              <Box>
+                <label
+                  style={{
+                    marginRight: 10,
+                    marginBottom: "20px",
+                  }}
+                >
+                  Grid Width:
+                  <input
+                    style={{
+                      marginLeft: 10,
+                      border: "1px solid black",
+                      height: 20,
+                      width: 100,
+                      cursor: "pointer",
+                    }}
+                    type="number"
+                    value={shownedRound.gridWidth}
+                    onChange={(e) =>
+                      changeRoundGridWidth(
+                        roundSelectedIdx,
+                        Number(e.target.value)
+                      )
+                    }
+                  />
+                </label>
+              </Box>
+
+              <WrappedIcon
+                title="Delete all entities in the current round"
+                icon={<CleaningServicesIcon />}
+                callback={() => {
+                  if (
+                    window.confirm(
+                      "Are you sure you want to delete all entities in this round?"
+                    )
+                  ) {
+                    cleanWholeRound(roundSelectedIdx);
+                  }
+                }}
+              />
+              <WrappedIcon
+                title="Delete current round"
+                icon={<DeleteIcon />}
+                callback={() => {
+                  if (
+                    window.confirm(
+                      "Are you sure you want to delete all entities in this round?"
+                    )
+                  ) {
+                    deleteRound(roundSelectedIdx);
+                  }
+                }}
+              />
+            </Box>
             <div
               style={{
                 display: "grid",
@@ -388,7 +458,7 @@ const MapEditor: React.FC = () => {
         Made with ❤️ by <a href="https://github.com/izimio">izimio</a>
       </p>
       <p style={{ textAlign: "center", fontSize: 11 }}>
-        R-Type 2024 - Paul Laban, Baptiste Leroyer, Lois Maneux, Arthur Pahon,
+        R-Type 2024 - Paul Laban, Baptiste Leroyer, Loïs Maneux, Arthur Pahon,
         Joshua Brionne
       </p>
     </div>

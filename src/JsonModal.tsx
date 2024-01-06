@@ -32,7 +32,13 @@ const JsonModal: React.FC<JsonModalProps> = ({
   jsonContent,
 }) => {
   return (
-    <Modal open={isOpen} onClose={onClose}>
+    <Modal open={isOpen} onClose={onClose}
+      sx={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+      }}
+      >
       <Box
         sx={{
           borderRadius: "10px",
@@ -44,6 +50,9 @@ const JsonModal: React.FC<JsonModalProps> = ({
           top: "50%",
           left: "50%",
           transform: "translate(-50%, -50%)",
+          "&:focus": {
+            outline: "none",
+          },
         }}
       >
         <div
@@ -62,11 +71,11 @@ const JsonModal: React.FC<JsonModalProps> = ({
               cursor: "pointer",
               marginTop: "10px",
               marginRight: "10px",
-              marginBottom: "10px",
+              paddingBottom: "10px",
               "&:hover": {
-                color: "#ccc",
+                color: "#ccd",
                 backgroundColor: "#1a1a1a",
-                
+
               },
 
             }}
