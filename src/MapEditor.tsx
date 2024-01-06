@@ -1,18 +1,25 @@
 // src/MapEditor.tsx
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Box } from "@mui/material";
 import JsonModal from "./JsonModal";
+
+import {
+  getLocalStorageItem,
+  saveLocalStorageItem,
+} from "./utils/localStorage";
 
 const MONSTER_TYPES = ["wave", "normal", "boss"];
 const ALL_TYPES = [...MONSTER_TYPES, "obstacles"];
 
 const ENTITIES_COLORS: { [key: string]: string } = {
-  wave: "#ffb997",
+  wave: "#74546a",
   boss: "#843b62",
   normal: "#f67e7d", // Corrected the extra spaces here
   obstacles: "#0b032d",
   none: "transparent",
 };
+
+const SMOOTH_ORANGE = "rgba(255, 165, 0, 0.5)";
 
 interface Entity {
   type: string;
@@ -38,7 +45,7 @@ interface JsonMap {
     | [];
 }
 
-interface Element {
+interface EntityElement {
   type: string;
   color: string;
 }
@@ -46,20 +53,34 @@ interface Element {
 const getKey = (threshold: number, height: number) => `${threshold}:${height}`;
 
 const MapEditor: React.FC = () => {
-  const [rounds, setRounds] = useState<Round[]>([
-    {
-      round: 1,
-      entities: {}, // Change from [] to {}
-      gridWidth: 10,
-    },
-  ]);
+  const [rounds, setRounds] = useState<Round[]>(() => {
+    const roundsFromLocalStorage = getLocalStorageItem("rounds");
+    if (roundsFromLocalStorage) {
+      return roundsFromLocalStorage;
+    }
+    return [
+      {
+        round: 1,
+        entities: {},
+        gridWidth: 10,
+      },
+    ];
+  });
 
-  const [selectedEnemy, setSelectedEnemy] = useState<Element | null>(null);
+  const [selectedEntity, setselectedEntity] = useState<EntityElement | null>(null);
   const [isJsonModalOpen, setIsJsonModalOpen] = useState(false);
   const [jsonContent, setJsonContent] = useState("");
+  const [roundSelectedIdx, setRoundSelectedIdx] = useState(0);
+  const shownedRound = rounds[roundSelectedIdx];
 
-  const handleEnemyClick = (enemyType: string) => {
-    setSelectedEnemy({
+
+
+  useEffect(() => {
+    saveLocalStorageItem("rounds", rounds);
+  }, [rounds]);
+
+  const SelectEntity = (enemyType: string) => {
+    setselectedEntity({
       type: enemyType,
       color: ENTITIES_COLORS[enemyType],
     });
@@ -97,14 +118,14 @@ const MapEditor: React.FC = () => {
           eachRound.obstacles.push(value);
         }
       }
-      if (cleanJson.rounds.length === 0) continue;
-      cleanJson.rounds.push(eachRound);
+      cleanJson.rounds.push(eachRound as never);
     }
     setJsonContent(JSON.stringify(cleanJson, null, 2));
     setIsJsonModalOpen(true);
   };
 
   // ===============  Rounds functions  ===============
+
   const addRound = () => {
     setRounds((prevRounds) => [
       ...prevRounds,
@@ -129,7 +150,7 @@ const MapEditor: React.FC = () => {
     threshold: number,
     height: number
   ) => {
-    if (selectedEnemy !== null) {
+    if (selectedEntity !== null) {
       setRounds((prevRounds: Round[]) => {
         const newRounds = [...prevRounds];
         const key = getKey(threshold, height);
@@ -137,7 +158,7 @@ const MapEditor: React.FC = () => {
         newRounds[roundIndex].entities = {
           ...newRounds[roundIndex].entities,
           [key]: {
-            type: selectedEnemy.type,
+            type: selectedEntity.type,
             threshold: threshold,
             height: height,
           },
@@ -174,16 +195,19 @@ const MapEditor: React.FC = () => {
               {ALL_TYPES.map((enemyType) => (
                 <button
                   key={enemyType}
-                  onClick={() => handleEnemyClick(enemyType)}
+                  onClick={() => SelectEntity(enemyType)}
                   disabled={
-                    !!(selectedEnemy && selectedEnemy.type === enemyType)
+                    !!(selectedEntity && selectedEntity.type === enemyType)
                   }
                   style={{
                     backgroundColor: ENTITIES_COLORS[enemyType],
-                    border: "1px solid black",
                     height: 50,
-                    width: 100,
+                    width: 110,
                     cursor: "pointer",
+                    border:
+                      selectedEntity && selectedEntity.type === enemyType
+                        ? "1px solid white"
+                        : "1px solid transparent",
                   }}
                 >
                   {enemyType}
@@ -191,6 +215,12 @@ const MapEditor: React.FC = () => {
               ))}
             </Box>
           </div>
+          <p>
+            Selected entity:{" "}
+            <span style={{ fontWeight: "bold", color: "red" }}>
+              {selectedEntity === null ? "None" : selectedEntity.type}
+            </span>
+          </p>
         </div>
         <Box
           sx={{
@@ -209,118 +239,146 @@ const MapEditor: React.FC = () => {
             marginBottom: "20px",
           }}
         />
-        {rounds.map((round, roundIndex) => (
-          <div key={round.round} style={{}}>
-            <div
+        <div>
+          <div
+            style={{
+              overflowX: "auto",
+              whiteSpace: "nowrap",
+              width: "calc(100vw - 40px)",
+            }}
+          >
+            <label style={{ marginRight: 10 }}>
+              Grid Width:
+              <input
+                style={{
+                  marginLeft: 10,
+                  border: "1px solid black",
+                  height: 20,
+                  width: 100,
+                  cursor: "pointer",
+                }}
+                type="number"
+                value={shownedRound.gridWidth}
+                onChange={(e) =>
+                  changeRoundGridWidth(roundSelectedIdx, Number(e.target.value))
+                }
+              />
+            </label>
+            <h2
               style={{
-                overflowX: "auto",
-                whiteSpace: "nowrap",
-                width: "calc(100vw - 40px)",
+                marginBottom: 0,
+                paddingBottom: 0,
               }}
             >
-              <label style={{ marginRight: 10 }}>
-                Grid Width:
-                <input
-                  style={{
-                    marginLeft: 10,
-                    border: "1px solid black",
-                    height: 20,
-                    width: 100,
-                    cursor: "pointer",
-                  }}
-                  type="number"
-                  value={round.gridWidth}
-                  onChange={(e) =>
-                    changeRoundGridWidth(roundIndex, Number(e.target.value))
-                  }
-                />
-              </label>
-              <h2>Round {round.round}</h2>
-              <p>
-                Entities:{" "}
-                <span style={{ fontWeight: "bold" }}>
-                  {Object.keys(round.entities).length}
-                </span>
-              </p>
-              <p>
-                Selected enemy:{" "}
-                <span style={{ fontWeight: "bold", color: "red" }}>
-                  {selectedEnemy === null ? "None" : selectedEnemy.type}
-                </span>
-              </p>
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: `repeat(${round.gridWidth}, 100px)`,
-                }}
-              >
-                {Array.from({ length: round.gridWidth * 10 }).map(
-                  (_, tileIndex) => {
-                    const ratio = Math.floor(tileIndex / round.gridWidth);
+              Round {shownedRound.round}
+            </h2>
+            <p
+              style={{
+                marginTop: 0,
+              }}
+            >
+              Entities:{" "}
+              <span style={{ fontWeight: "bold" }}>
+                {Object.keys(shownedRound.entities).length}
+              </span>
+            </p>
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: `repeat(${shownedRound.gridWidth}, 100px)`,
+              }}
+            >
+              {Array.from({ length: shownedRound.gridWidth * 10 }).map(
+                (_, tileIndex) => {
+                  const ratio = Math.floor(tileIndex / shownedRound.gridWidth);
 
-                    const threshold = (tileIndex % round.gridWidth) * 10 + 10;
-                    const height = ratio * 100 + 100;
+                  const threshold =
+                    (tileIndex % shownedRound.gridWidth) * 10 + 10;
+                  const height = ratio * 100 + 100;
 
-                    const key = getKey(threshold, height);
-                    const entity = round.entities[key];
-                    const type = (entity && entity.type) || "none";
+                  const key = getKey(threshold, height);
+                  const entity = shownedRound.entities[key];
+                  const type = (entity && entity.type) || "none";
 
-                    return (
+                  return (
+                    <Box
+                      key={tileIndex}
+                      onClick={() =>
+                        handleTileClick(roundSelectedIdx, threshold, height)
+                      }
+                      sx={{
+                        height: 50,
+                        width: 100,
+                        position: "relative",
+                        border: "1px solid black",
+                        backgroundColor: ENTITIES_COLORS[type],
+
+                        "&:hover": {
+                          borderColor: SMOOTH_ORANGE,
+                        },
+
+                        "&:hover > *": {
+                          opacity: 1,
+                          transition: "opacity 0.3s ease-in-out",
+                        },
+                      }}
+                    >
                       <Box
-                        key={tileIndex}
-                        onClick={() =>
-                          handleTileClick(roundIndex, threshold, height)
-                        }
                         sx={{
-                          height: 50,
-                          width: 100,
-                          position: "relative",
-                          border: "1px solid black",
-                          backgroundColor: ENTITIES_COLORS[type],
-
-                          "&:hover": {
-                            borderColor: "rgba(255, 165, 0, 0.5)",
-                          },
-
-                          "&:hover > *": {
-                            opacity: 1,
-                            transition: "opacity 0.3s ease-in-out",
-                          },
+                          color: "white",
+                          fontSize: 11,
+                          userSelect: "none",
+                          position: "absolute",
+                          opacity: 0,
+                          top: "50%",
+                          left: "50%",
+                          transform: "translate(-50%, -50%)",
                         }}
                       >
-                        <Box
-                          sx={{
-                            color: "white",
-                            fontSize: 11,
-                            userSelect: "none",
-                            position: "absolute",
-                            opacity: 0,
-                            top: "50%",
-                            left: "50%",
-                            transform: "translate(-50%, -50%)",
-                          }}
-                        >
-                          h:{height} <br></br>t:{threshold}
-                        </Box>
+                        h:{height} <br></br>t:{threshold}
                       </Box>
-                    );
-                  }
-                )}
-              </div>
+                    </Box>
+                  );
+                }
+              )}
             </div>
-            <hr
-              style={{
-                border: "1px solid black",
-                marginTop: "20px",
-                marginBottom: "20px",
-              }}
-            />
           </div>
-        ))}
-        <button onClick={addRound}>Add Round</button>
-        <span style={{ marginLeft: 10 }}>
-          Total rounds: <strong>{rounds.length}</strong>
-        </span>
+          <div
+            style={{
+              height: "20px",
+            }}
+          ></div>
+          {/* <hr
+            style={{
+              border: "1px solid black",
+              marginTop: "20px",
+              marginBottom: "20px",
+            }}
+          /> */}
+        </div>
+        <div style={{ display: "flex", gap: "10px" }}>
+          {rounds.map((round, roundIndex) => {
+            return (
+              <button
+                key={round.round}
+                onClick={() => setRoundSelectedIdx(roundIndex)}
+                style={{
+                  border:
+                    roundSelectedIdx === roundIndex
+                      ? "1px solid white"
+                      : "1px solid transparent",
+                  cursor: "pointer",
+                }}
+              >
+                {round.round}
+              </button>
+            );
+          })}
+          <button onClick={addRound}>+</button>
+          <span style={{ opacity: 0.5, display: "flex", alignItems: "end" }}>
+            Total rounds: <strong>{rounds.length}</strong>
+          </span>
+        </div>
       </div>
       <p
         style={{

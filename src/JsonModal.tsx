@@ -1,69 +1,13 @@
 import React from "react";
-import { Modal, Box, Button } from "@mui/material";
+import { Modal, Box, Button, Icon } from "@mui/material";
+import ContentCopyIcon from '@mui/icons-material/ContentCopy';
+import toast from "react-hot-toast";
 
 interface JsonModalProps {
   isOpen: boolean;
   onClose: () => void;
   jsonContent: string;
 }
-
-const JsonModal: React.FC<JsonModalProps> = ({
-  isOpen,
-  onClose,
-  jsonContent,
-}) => {
-  return (
-    <Modal open={isOpen} onClose={onClose}>
-      <Box
-        sx={{
-          position: "absolute",
-          width: 400,
-          bgcolor: "#1a1a1a",
-          boxShadow: 24,
-          p: 2,
-          top: "50%",
-          left: "50%",
-          transform: "translate(-50%, -50%)",
-        }}
-      >
-        <div
-          style={{
-            maxHeight: "800px", // Set a maximum height for scrolling
-            overflow: "auto",
-            borderBottom: "1px solid white",
-            scrollbarWidth: "thin", // For Firefox
-            scrollbarColor: "#ccc #1a1a1a", // For Firefox
-
-          }}
-        >
-          <pre
-            style={{
-              color: "white",
-              whiteSpace: "pre-wrap",
-              wordWrap: "break-word",
-            }}
-          >
-            {jsonContent}
-          </pre>
-        </div>
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-evenly",
-            marginTop: "30px",
-          }}
-        >
-          <Button color="warning" onClick={onClose}>
-            Back
-          </Button>
-          <Button 
-          variant="outlined"    
-          onClick={() => downloadJson(jsonContent)}>Download</Button>
-        </div>
-      </Box>
-    </Modal>
-  );
-};
 
 const downloadJson = (jsonContent: string) => {
   const blob = new Blob([jsonContent], { type: "application/json" });
@@ -75,6 +19,90 @@ const downloadJson = (jsonContent: string) => {
   a.click();
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
+};
+
+const copyToClipboard = (jsonContent: string) => {
+  navigator.clipboard.writeText(jsonContent);
+  toast.success("Json copied to clipboard");
+};
+
+const JsonModal: React.FC<JsonModalProps> = ({
+  isOpen,
+  onClose,
+  jsonContent,
+}) => {
+  return (
+    <Modal open={isOpen} onClose={onClose}>
+      <Box
+        sx={{
+          borderRadius: "10px",
+          position: "absolute",
+          width: 500,
+          bgcolor: "#1a1a1a",
+          boxShadow: 24,
+          p: 2,
+          top: "50%",
+          left: "50%",
+          transform: "translate(-50%, -50%)",
+        }}
+      >
+        <div
+          style={{
+            maxHeight: "600px",
+            overflow: "auto",
+            borderBottom: "1px solid white",
+            scrollbarWidth: "thin",
+            scrollbarColor: "#ccc #1a1a1a",
+          }}
+        >
+          <Icon
+            sx={{
+              color: "white",
+              float: "right",
+              cursor: "pointer",
+              marginTop: "10px",
+              marginRight: "10px",
+              marginBottom: "10px",
+              "&:hover": {
+                color: "#ccc",
+                backgroundColor: "#1a1a1a",
+                
+              },
+
+            }}
+            onClick={() => copyToClipboard(jsonContent)}
+          >
+            <ContentCopyIcon   />
+          </Icon>
+          <code
+            title="jsonContent"
+            about="jsonContent"
+            style={{
+              color: "white",
+              whiteSpace: "pre-wrap",
+              wordWrap: "break-word",
+            }}
+          >
+            {jsonContent}
+          </code>
+        </div>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-evenly",
+            marginTop: "30px",
+          }}
+        >
+          <Button color="warning" onClick={onClose}>
+            Back
+          </Button>
+          <Button variant="outlined" onClick={() => downloadJson(jsonContent)}>
+            Download
+          </Button>
+        </div>
+      </Box>
+    </Modal>
+  );
 };
 
 export default JsonModal;
