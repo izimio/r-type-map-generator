@@ -1,6 +1,5 @@
 import React, { useRef, useState } from "react";
-import { Modal, Box, Button, Icon } from "@mui/material";
-import ContentCopyIcon from "@mui/icons-material/ContentCopy";
+import { Modal, Box, Button } from "@mui/material";
 import toast from "react-hot-toast";
 import DriveFolderUploadIcon from "@mui/icons-material/DriveFolderUpload";
 
@@ -103,13 +102,17 @@ const ImportJsonModal: React.FC<ImportJsonModalProps> = ({
                 }
               }}
             >
-              Upload JSON
+              Import JSON file
             </label>
           </Box>
           <Box sx={{ display: "flex", justifyContent: "end", gap: "10px" }}>
             <Button
               variant="outlined"
-              onClick={() => setRoundsContent(jsonContent)}
+              onClick={() => {
+                setRoundsContent(jsonContent);
+                onClose();
+                toast.success("JSON content imported!");
+              }}
               style={{ marginRight: "10px" }}
             >
               Import JSON

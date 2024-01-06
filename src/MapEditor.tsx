@@ -9,7 +9,8 @@ import CleaningServicesIcon from "@mui/icons-material/CleaningServices";
 import DeleteIcon from "@mui/icons-material/Delete";
 import ColorLensIcon from "@mui/icons-material/ColorLens";
 import GetAppIcon from "@mui/icons-material/GetApp";
-import DataObjectIcon from '@mui/icons-material/DataObject';
+import DataObjectIcon from "@mui/icons-material/DataObject";
+import BackspaceIcon from "@mui/icons-material/Backspace";
 
 import {
   getLocalStorageItem,
@@ -195,7 +196,6 @@ const MapEditor: React.FC = () => {
   };
 
   const deleteRound = (roundIndex: number) => {
-    console.log("rounds", rounds);
     if (rounds.length === 1) {
       toast.error("You can't delete the last round");
       return;
@@ -211,45 +211,90 @@ const MapEditor: React.FC = () => {
     setRoundSelectedIdx(0);
   };
 
+  // function to import json
   const setRoundsFromText = (jsonContent: string): boolean => {
-
     try {
       const parsedJson = JSON.parse(jsonContent);
-      console.log(parsedJson);
+
+      const newObj = parsedJson.rounds.map((round: any) => {
+        const entities: Record<string, Entity> = {};
+        round.ennemies.forEach((entity: Entity) => {
+          entities[getKey(entity.threshold, entity.height)] = entity;
+        });
+        round.obstacles.forEach((entity: Entity) => {
+          entities[getKey(entity.threshold, entity.height)] = entity;
+        });
+        let maxThreshold = Math.max(
+          ...round.ennemies.map((entity: Entity) => entity.threshold),
+          ...round.obstacles.map((entity: Entity) => entity.threshold)
+        );
+        if (
+          maxThreshold == -Infinity ||
+          maxThreshold == Infinity ||
+          maxThreshold == null ||
+          maxThreshold == undefined ||
+          maxThreshold == 0 ||
+          maxThreshold < 100
+        ) {
+          maxThreshold = 100;
+        }
+        return {
+          round: round.round,
+          entities: entities,
+          gridWidth: maxThreshold / 10,
+        };
+      });
+
+      setRounds(newObj);
+
       return true;
     } catch (e) {
       console.log(e);
       return false;
     }
-  }
+  };
 
   const handleTileClick = (
     roundIndex: number,
     threshold: number,
     height: number
   ) => {
-    if (selectedEntity !== null) {
+    if (selectedEntity === null) {
+      toast("You need to select an entity first", {
+        icon: "ℹ️",
+      });
+      return;
+    }
+
+    if (selectedEntity.type === "Eraser") {
       setRounds((prevRounds: Round[]) => {
         const newRounds = [...prevRounds];
         const key = getKey(threshold, height);
-
-        newRounds[roundIndex].entities = {
-          ...newRounds[roundIndex].entities,
-          [key]: {
-            type: selectedEntity.type,
-            threshold: threshold,
-            height: height,
-          },
-        };
+        delete newRounds[roundIndex].entities[key];
         return newRounds;
       });
+      return;
     }
+    setRounds((prevRounds: Round[]) => {
+      const newRounds = [...prevRounds];
+      const key = getKey(threshold, height);
+
+      newRounds[roundIndex].entities = {
+        ...newRounds[roundIndex].entities,
+        [key]: {
+          type: selectedEntity.type,
+          threshold: threshold,
+          height: height,
+        },
+      };
+      return newRounds;
+    });
   };
 
   // ===============  Rounds functions  ===============
   return (
     <div>
-      <div style={{ padding: 20 }}>
+      <div style={{ margin: 20 }}>
         <JsonModal
           isOpen={isJsonModalOpen}
           onClose={() => setIsJsonModalOpen(false)}
@@ -265,7 +310,6 @@ const MapEditor: React.FC = () => {
           onClose={() => setIsPaletteModalOpen(false)}
           colorPalette={colorPalette}
           onPaletteChange={(newColorPalette) => {
-            console.log("LAAA", newColorPalette);
             setColorPalette(newColorPalette);
           }}
         />
@@ -311,6 +355,24 @@ const MapEditor: React.FC = () => {
                   {enemyType}
                 </button>
               ))}
+              <button
+                onClick={() => SelectEntity("Eraser")}
+                disabled={
+                  !!(selectedEntity && selectedEntity.type === "Eraser")
+                }
+                style={{
+                  backgroundColor: colorPalette["Eraser"],
+                  height: 50,
+                  width: 110,
+                  cursor: "pointer",
+                  border:
+                    selectedEntity && selectedEntity.type === "Eraser"
+                      ? "1px solid white"
+                      : "1px solid transparent",
+                }}
+              >
+                <BackspaceIcon />
+              </button>
               <WrappedIcon
                 title="Change color palette"
                 icon={<ColorLensIcon />}
@@ -333,9 +395,11 @@ const MapEditor: React.FC = () => {
             gap: "10px",
           }}
         >
-          <button onClick={() => {
-            setIsImportJsonModalOpen(true);
-          }}>
+          <button
+            onClick={() => {
+              setIsImportJsonModalOpen(true);
+            }}
+          >
             <Box
               sx={{
                 display: "flex",
@@ -453,7 +517,12 @@ const MapEditor: React.FC = () => {
 
               <WrappedIcon
                 title="Delete all entities in the current round"
-                icon={<CleaningServicesIcon />}
+                icon={<CleaningServicesIcon 
+                
+                sx={{
+                  color: "#0096D6",
+                }}
+                />}
                 callback={() => {
                   createConfirmation(
                     "Are you sure you want to delete all entities in this round?",
@@ -463,7 +532,13 @@ const MapEditor: React.FC = () => {
               />
               <WrappedIcon
                 title="Delete current round"
-                icon={<DeleteIcon />}
+                icon={
+                  <DeleteIcon
+                    sx={{
+                      color: "#bb2124",
+                    }}
+                  />
+                }
                 callback={() => {
                   createConfirmation(
                     "Are you sure you want to delete this round?",
@@ -484,7 +559,7 @@ const MapEditor: React.FC = () => {
 
                   const threshold =
                     (tileIndex % shownedRound.gridWidth) * 10 + 10;
-                  const height = ratio * 100 + 100;
+                  const height = 1100 - (ratio * 100 + 100);
 
                   const key = getKey(threshold, height);
                   const entity = shownedRound.entities[key];
