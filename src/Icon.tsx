@@ -13,12 +13,13 @@ const WrappedIcon = ({
     <Icon
       title={title}
       sx={{
+        padding: "5px",
+        borderRadius: "5px",
         color: "white",
-        float: "right",
         cursor: "pointer",
-        marginTop: "10px",
-        marginRight: "10px",
-        paddingBottom: "10px",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
         "&:hover": {
           color: "#ccd",
           backgroundColor: "#1a1a1a",

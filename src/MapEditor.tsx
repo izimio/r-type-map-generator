@@ -1,29 +1,28 @@
 // src/MapEditor.tsx
 import React, { useState, useEffect } from "react";
-import { Box, Icon } from "@mui/material";
+import { Box } from "@mui/material";
 import JsonModal from "./JsonModal";
+import PaletteModal from "./ImportPaletModal";
 import WrappedIcon from "./Icon";
 
 import CleaningServicesIcon from "@mui/icons-material/CleaningServices";
 import DeleteIcon from "@mui/icons-material/Delete";
+import ColorLensIcon from "@mui/icons-material/ColorLens";
 
 import {
   getLocalStorageItem,
   saveLocalStorageItem,
 } from "./utils/localStorage";
+import {
+  MONSTER_TYPES,
+  ALL_TYPES,
+  ENTITIES_COLORS,
+  SMOOTH_ORANGE,
+} from "./utils/constants";
 
-const MONSTER_TYPES = ["wave", "normal", "boss"];
-const ALL_TYPES = [...MONSTER_TYPES, "obstacles"];
-
-const ENTITIES_COLORS: { [key: string]: string } = {
-  wave: "#74546a",
-  boss: "#843b62",
-  normal: "#f67e7d", // Corrected the extra spaces here
-  obstacles: "#0b032d",
-  none: "transparent",
-};
-
-const SMOOTH_ORANGE = "rgba(255, 165, 0, 0.5)";
+interface ColorPalette {
+  [key: string]: string;
+}
 
 interface Entity {
   type: string;
@@ -75,18 +74,34 @@ const MapEditor: React.FC = () => {
     null
   );
   const [isJsonModalOpen, setIsJsonModalOpen] = useState(false);
+  const [isPaletteModalOpen, setIsPaletteModalOpen] = useState(false);
   const [jsonContent, setJsonContent] = useState("");
   const [roundSelectedIdx, setRoundSelectedIdx] = useState(0);
+  const [colorPalette, setColorPalette] = useState<ColorPalette>(() => {
+    const colorPaletteFromLocalStorage = getLocalStorageItem("colorPalette");
+    if (colorPaletteFromLocalStorage) {
+      return colorPaletteFromLocalStorage;
+    }
+    return ENTITIES_COLORS;
+  });
   const shownedRound = rounds[roundSelectedIdx];
 
   useEffect(() => {
     saveLocalStorageItem("rounds", rounds);
   }, [rounds]);
 
+  useEffect(() => {
+    const len = Object.keys(colorPalette).length;
+    if (len < Object.keys(ENTITIES_COLORS).length) {
+      setColorPalette(ENTITIES_COLORS);
+    }
+    saveLocalStorageItem("colorPalette", colorPalette);
+  }, [colorPalette]);
+
   const SelectEntity = (enemyType: string) => {
     setselectedEntity({
       type: enemyType,
-      color: ENTITIES_COLORS[enemyType],
+      color: colorPalette[enemyType],
     });
   };
 
@@ -118,7 +133,7 @@ const MapEditor: React.FC = () => {
         if (MONSTER_TYPES.includes(value.type)) {
           eachRound.ennemies.push(value);
         }
-        if (value.type === "obstacle") {
+        if (value.type === "obstacles") {
           eachRound.obstacles.push(value);
         }
       }
@@ -192,7 +207,6 @@ const MapEditor: React.FC = () => {
   };
 
   // ===============  Rounds functions  ===============
-
   return (
     <div>
       <div style={{ padding: 20 }}>
@@ -201,6 +215,16 @@ const MapEditor: React.FC = () => {
           onClose={() => setIsJsonModalOpen(false)}
           jsonContent={jsonContent}
         />
+        <PaletteModal
+          isOpen={isPaletteModalOpen}
+          onClose={() => setIsPaletteModalOpen(false)}
+          colorPalette={colorPalette}
+          onPaletteChange={(newColorPalette) => {
+            console.log("LAAA", newColorPalette);
+            setColorPalette(newColorPalette);
+          }}
+        />
+
         <h1>R-TYPE | Map Editor</h1>
         <div
           style={{
@@ -223,7 +247,7 @@ const MapEditor: React.FC = () => {
                     !!(selectedEntity && selectedEntity.type === enemyType)
                   }
                   style={{
-                    backgroundColor: ENTITIES_COLORS[enemyType],
+                    backgroundColor: colorPalette[enemyType],
                     height: 50,
                     width: 110,
                     cursor: "pointer",
@@ -236,6 +260,13 @@ const MapEditor: React.FC = () => {
                   {enemyType}
                 </button>
               ))}
+              <WrappedIcon
+                title="Change color palette"
+                icon={<ColorLensIcon />}
+                callback={() => {
+                  setIsPaletteModalOpen(true);
+                }}
+              />
             </Box>
           </div>
           <p>
@@ -381,7 +412,7 @@ const MapEditor: React.FC = () => {
                         width: 100,
                         position: "relative",
                         border: "1px solid black",
-                        backgroundColor: ENTITIES_COLORS[type],
+                        backgroundColor: colorPalette[type],
 
                         "&:hover": {
                           borderColor: SMOOTH_ORANGE,
