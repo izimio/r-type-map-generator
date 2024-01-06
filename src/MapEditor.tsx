@@ -8,6 +8,8 @@ import WrappedIcon from "./Icon";
 import CleaningServicesIcon from "@mui/icons-material/CleaningServices";
 import DeleteIcon from "@mui/icons-material/Delete";
 import ColorLensIcon from "@mui/icons-material/ColorLens";
+import GetAppIcon from "@mui/icons-material/GetApp";
+import DataObjectIcon from '@mui/icons-material/DataObject';
 
 import {
   getLocalStorageItem,
@@ -21,6 +23,7 @@ import {
 } from "./utils/constants";
 import ConfirmeModal from "./ConfirmModal";
 import toast from "react-hot-toast";
+import ImportJsonModal from "./ImportJsonModal";
 
 interface ColorPalette {
   [key: string]: string;
@@ -76,6 +79,7 @@ const MapEditor: React.FC = () => {
     null
   );
   const [isJsonModalOpen, setIsJsonModalOpen] = useState(false);
+  const [isImportJsonModalOpen, setIsImportJsonModalOpen] = useState(false);
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
   const [isPaletteModalOpen, setIsPaletteModalOpen] = useState(false);
   const [confirmInfos, setConfirmInfos] = useState<{
@@ -207,6 +211,18 @@ const MapEditor: React.FC = () => {
     setRoundSelectedIdx(0);
   };
 
+  const setRoundsFromText = (jsonContent: string): boolean => {
+
+    try {
+      const parsedJson = JSON.parse(jsonContent);
+      console.log(parsedJson);
+      return true;
+    } catch (e) {
+      console.log(e);
+      return false;
+    }
+  }
+
   const handleTileClick = (
     roundIndex: number,
     threshold: number,
@@ -238,6 +254,11 @@ const MapEditor: React.FC = () => {
           isOpen={isJsonModalOpen}
           onClose={() => setIsJsonModalOpen(false)}
           jsonContent={jsonContent}
+        />
+        <ImportJsonModal
+          isOpen={isImportJsonModalOpen}
+          onClose={() => setIsImportJsonModalOpen(false)}
+          setRoundsContent={setRoundsFromText}
         />
         <PaletteModal
           isOpen={isPaletteModalOpen}
@@ -312,8 +333,52 @@ const MapEditor: React.FC = () => {
             gap: "10px",
           }}
         >
-          <button onClick={exportToJson}>Import JSON</button>
-          <button onClick={exportToJson}>Export to JSON</button>
+          <button onClick={() => {
+            setIsImportJsonModalOpen(true);
+          }}>
+            <Box
+              sx={{
+                display: "flex",
+                height: "100%",
+                width: "100%",
+                alignItems: "center",
+                gap: "10px",
+                transition: "200ms ease-in-out",
+                "&:hover > *": {
+                  color: SMOOTH_ORANGE,
+                },
+              }}
+            >
+              <DataObjectIcon
+                sx={{
+                  transition: "color 0.3s ease-in-out",
+                }}
+              />
+              Import from JSON
+            </Box>
+          </button>
+          <button onClick={exportToJson}>
+            <Box
+              sx={{
+                display: "flex",
+                height: "100%",
+                width: "100%",
+                alignItems: "center",
+                gap: "10px",
+                transition: "200ms ease-in-out",
+                "&:hover > *": {
+                  color: SMOOTH_ORANGE,
+                },
+              }}
+            >
+              <GetAppIcon
+                sx={{
+                  transition: "color 0.3s ease-in-out",
+                }}
+              />
+              Export to JSON
+            </Box>
+          </button>
         </Box>
 
         <hr

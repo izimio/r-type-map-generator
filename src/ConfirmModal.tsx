@@ -53,10 +53,7 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
         >
           {text}
         </h3>
-        <Box sx={{ display: "flex", justifyContent: "center", gap: "10px" }}>
-          <Button color="info" onClick={onClose}>
-            No
-          </Button>
+        <Box sx={{ display: "flex", justifyContent: "end", gap: "10px" }}>
           <Button
             color="error"
             variant="outlined"
@@ -67,6 +64,9 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
             }}
           >
             Yes
+          </Button>
+          <Button color="info" onClick={onClose}>
+            No
           </Button>
         </Box>
       </Box>

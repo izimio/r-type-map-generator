@@ -109,12 +109,21 @@ const PaletteModal: React.FC<PaletteModalProps> = ({
           })}
         </Box>
 
-        <Button color="warning" onClick={onClose}>
-          Back
-        </Button>
-        <Button variant="outlined" onClick={handleSaveChanges}>
-          Save Changes
-        </Button>
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "end",
+            gap: "10px",
+          }}
+        >
+          <Button variant="outlined" onClick={handleSaveChanges}>
+            Save Changes
+          </Button>
+          <Button color="warning" onClick={onClose}>
+            Back
+          </Button>
+        </Box>
       </Box>
     </Modal>
   );

@@ -1,6 +1,6 @@
 import React from "react";
 import { Modal, Box, Button, Icon } from "@mui/material";
-import ContentCopyIcon from '@mui/icons-material/ContentCopy';
+import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import toast from "react-hot-toast";
 
 interface JsonModalProps {
@@ -32,13 +32,15 @@ const JsonModal: React.FC<JsonModalProps> = ({
   jsonContent,
 }) => {
   return (
-    <Modal open={isOpen} onClose={onClose}
+    <Modal
+      open={isOpen}
+      onClose={onClose}
       sx={{
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
       }}
-      >
+    >
       <Box
         sx={{
           borderRadius: "10px",
@@ -75,13 +77,11 @@ const JsonModal: React.FC<JsonModalProps> = ({
               "&:hover": {
                 color: "#ccd",
                 backgroundColor: "#1a1a1a",
-
               },
-
             }}
             onClick={() => copyToClipboard(jsonContent)}
           >
-            <ContentCopyIcon   />
+            <ContentCopyIcon />
           </Icon>
           <code
             title="jsonContent"
@@ -95,20 +95,23 @@ const JsonModal: React.FC<JsonModalProps> = ({
             {jsonContent}
           </code>
         </div>
-        <div
-          style={{
+
+        <Box
+          sx={{
             display: "flex",
-            justifyContent: "space-evenly",
-            marginTop: "30px",
+            alignItems: "center",
+            justifyContent: "end",
+            gap: "10px",
+            marginTop: "10px",
           }}
         >
-          <Button color="warning" onClick={onClose}>
-            Back
-          </Button>
           <Button variant="outlined" onClick={() => downloadJson(jsonContent)}>
             Download
           </Button>
-        </div>
+          <Button color="warning" onClick={onClose}>
+            Back
+          </Button>
+        </Box>
       </Box>
     </Modal>
   );
