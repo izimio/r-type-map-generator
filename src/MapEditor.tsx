@@ -517,12 +517,13 @@ const MapEditor: React.FC = () => {
 
               <WrappedIcon
                 title="Delete all entities in the current round"
-                icon={<CleaningServicesIcon 
-                
-                sx={{
-                  color: "#0096D6",
-                }}
-                />}
+                icon={
+                  <CleaningServicesIcon
+                    sx={{
+                      color: "#0096D6",
+                    }}
+                  />
+                }
                 callback={() => {
                   createConfirmation(
                     "Are you sure you want to delete all entities in this round?",
@@ -571,6 +572,11 @@ const MapEditor: React.FC = () => {
                       onClick={() =>
                         handleTileClick(roundSelectedIdx, threshold, height)
                       }
+                      onMouseOver={(e) => {
+                        if (e.buttons === 1) {
+                          handleTileClick(roundSelectedIdx, threshold, height);
+                        }
+                      }}
                       sx={{
                         height: 50,
                         width: 100,
