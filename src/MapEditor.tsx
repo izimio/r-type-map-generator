@@ -11,6 +11,7 @@ import ColorLensIcon from "@mui/icons-material/ColorLens";
 import GetAppIcon from "@mui/icons-material/GetApp";
 import DataObjectIcon from "@mui/icons-material/DataObject";
 import BackspaceIcon from "@mui/icons-material/Backspace";
+import DesignServicesIcon from "@mui/icons-material/DesignServices";
 
 import {
   getLocalStorageItem,
@@ -21,24 +22,35 @@ import {
   ALL_TYPES,
   ENTITIES_COLORS,
   SMOOTH_ORANGE,
+  DEFAULT_ENTITY_ATTRIBUTES,
 } from "./utils/constants";
 import ConfirmeModal from "./ConfirmModal";
 import toast from "react-hot-toast";
 import ImportJsonModal from "./ImportJsonModal";
+import EditDefaultEntityAttributsModal, {
+  IEntityAttributes,
+} from "./EditDefaultEntityAttributsModal";
+import EditEntityAttributsModal from "./EditEntityAttributsModal";
 
 interface ColorPalette {
   [key: string]: string;
 }
 
-interface Entity {
+export interface Entity {
   type: string;
   threshold: number;
   height: number;
+  speed: number;
+  health: number;
+  sprite: string;
+  config: {
+    range?: number;
+  };
 }
 
 interface Round {
   round: number;
-  entities: Record<string, Entity>; // Change from Entity[] to Record<string, Entity>
+  entities: Record<string, Entity>;
   gridWidth: number;
 }
 
@@ -76,13 +88,21 @@ const MapEditor: React.FC = () => {
     ];
   });
 
-  const [selectedEntity, setselectedEntity] = useState<EntityElement | null>(
-    null
-  );
+  const [selectedKey, setSelectedKey] = useState("");
+  const [selectedEntityType, setselectedEntityType] =
+    useState<EntityElement | null>(null);
   const [isJsonModalOpen, setIsJsonModalOpen] = useState(false);
   const [isImportJsonModalOpen, setIsImportJsonModalOpen] = useState(false);
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
   const [isPaletteModalOpen, setIsPaletteModalOpen] = useState(false);
+  const [
+    isEditDefaultEntityAttributsModalOpen,
+    setIsEditDefaultEntityAttributsModalOpen,
+  ] = useState(false);
+
+  const [isEditEntityAttributsModalOpen, setIsEditEntityAttributsModalOpen] =
+    useState(false);
+
   const [confirmInfos, setConfirmInfos] = useState<{
     text: string;
     callback: () => void;
@@ -90,8 +110,19 @@ const MapEditor: React.FC = () => {
     text: "",
     callback: () => {},
   });
+  // =========================================== //
   const [jsonContent, setJsonContent] = useState("");
   const [roundSelectedIdx, setRoundSelectedIdx] = useState(0);
+  const [defaultEntityAttributes, setDefaultEntityAttributes] =
+    useState<IEntityAttributes>(() => {
+      const defaultEntityAttributesFromLocalStorage = getLocalStorageItem(
+        "defaultEntityAttributes"
+      );
+      if (defaultEntityAttributesFromLocalStorage) {
+        return defaultEntityAttributesFromLocalStorage;
+      }
+      return DEFAULT_ENTITY_ATTRIBUTES;
+    });
   const [colorPalette, setColorPalette] = useState<ColorPalette>(() => {
     const colorPaletteFromLocalStorage = getLocalStorageItem("colorPalette");
     if (colorPaletteFromLocalStorage) {
@@ -99,12 +130,26 @@ const MapEditor: React.FC = () => {
     }
     return ENTITIES_COLORS;
   });
+  // =========================================== //
   // Independent round selected
   const shownedRound = rounds[roundSelectedIdx];
+  const selectedEntity = shownedRound.entities[selectedKey] || {
+    type: "none",
+    threshold: 0,
+    height: 0,
+    speed: 0,
+    health: 0,
+    sprite: "",
+    config: {},
+  };
 
   useEffect(() => {
     saveLocalStorageItem("rounds", rounds);
   }, [rounds]);
+
+  useEffect(() => {
+    saveLocalStorageItem("defaultEntityAttributes", defaultEntityAttributes);
+  }, [defaultEntityAttributes]);
 
   useEffect(() => {
     const len = Object.keys(colorPalette).length;
@@ -115,7 +160,7 @@ const MapEditor: React.FC = () => {
   }, [colorPalette]);
 
   const SelectEntity = (enemyType: string) => {
-    setselectedEntity({
+    setselectedEntityType({
       type: enemyType,
       color: colorPalette[enemyType],
     });
@@ -254,19 +299,31 @@ const MapEditor: React.FC = () => {
     }
   };
 
+  const handleCtrTileClick = (roundIndex: number, key: string) => {
+    const tile = rounds[roundIndex].entities[key];
+    if (!tile) {
+      return;
+    }
+    if (tile.type === "none" || tile.type === "obstacles") {
+      return;
+    }
+
+    setSelectedKey(key);
+    setIsEditEntityAttributsModalOpen(true);
+  };
   const handleTileClick = (
     roundIndex: number,
     threshold: number,
     height: number
   ) => {
-    if (selectedEntity === null) {
+    if (selectedEntityType === null) {
       toast("You need to select an entity first", {
         icon: "ℹ️",
       });
       return;
     }
 
-    if (selectedEntity.type === "Eraser") {
+    if (selectedEntityType.type === "Eraser") {
       setRounds((prevRounds: Round[]) => {
         const newRounds = [...prevRounds];
         const key = getKey(threshold, height);
@@ -282,15 +339,18 @@ const MapEditor: React.FC = () => {
       newRounds[roundIndex].entities = {
         ...newRounds[roundIndex].entities,
         [key]: {
-          type: selectedEntity.type,
+          type: selectedEntityType.type,
           threshold: threshold,
           height: height,
+          speed: defaultEntityAttributes.speed,
+          health: defaultEntityAttributes.health,
+          sprite: defaultEntityAttributes.sprite,
+          config: defaultEntityAttributes.config,
         },
       };
       return newRounds;
     });
   };
-
   // ===============  Rounds functions  ===============
   return (
     <div>
@@ -319,6 +379,45 @@ const MapEditor: React.FC = () => {
           text={confirmInfos.text}
           callback={confirmInfos.callback}
         />
+        {/* To edit a tile*/}
+        {selectedEntity.type !== "none" && (
+          <EditEntityAttributsModal
+            isOpen={isEditEntityAttributsModalOpen}
+            onClose={() => setIsEditEntityAttributsModalOpen(false)}
+            defaultEntityAttributes={{
+              health: selectedEntity.health,
+              speed: selectedEntity.speed,
+              sprite: selectedEntity.sprite,
+              config: selectedEntity.config,
+            }}
+            setDefaultEntityAttributs={(
+              entityAttributes: IEntityAttributes
+            ) => {
+              setRounds((prevRounds: Round[]) => {
+                const newRounds = [...prevRounds];
+                const key = getKey(
+                  selectedEntity.threshold,
+                  selectedEntity.height
+                );
+                newRounds[roundSelectedIdx].entities[key] = {
+                  ...newRounds[roundSelectedIdx].entities[key],
+                  ...entityAttributes,
+                };
+                return newRounds;
+              });
+            }}
+          />
+        )}
+
+        {/* To edit defautl one*/}
+        <EditDefaultEntityAttributsModal
+          isOpen={isEditDefaultEntityAttributsModalOpen}
+          onClose={() => setIsEditDefaultEntityAttributsModalOpen(false)}
+          defaultEntityAttributes={defaultEntityAttributes}
+          setDefaultEntityAttributs={setDefaultEntityAttributes}
+        />
+
+        {/* ============== end of modal ============ */}
 
         <h1>R-TYPE | Map Editor</h1>
         <div
@@ -339,7 +438,10 @@ const MapEditor: React.FC = () => {
                   key={enemyType}
                   onClick={() => SelectEntity(enemyType)}
                   disabled={
-                    !!(selectedEntity && selectedEntity.type === enemyType)
+                    !!(
+                      selectedEntityType &&
+                      selectedEntityType.type === enemyType
+                    )
                   }
                   style={{
                     backgroundColor: colorPalette[enemyType],
@@ -347,7 +449,8 @@ const MapEditor: React.FC = () => {
                     width: 110,
                     cursor: "pointer",
                     border:
-                      selectedEntity && selectedEntity.type === enemyType
+                      selectedEntityType &&
+                      selectedEntityType.type === enemyType
                         ? "1px solid white"
                         : "1px solid transparent",
                   }}
@@ -358,7 +461,7 @@ const MapEditor: React.FC = () => {
               <button
                 onClick={() => SelectEntity("Eraser")}
                 disabled={
-                  !!(selectedEntity && selectedEntity.type === "Eraser")
+                  !!(selectedEntityType && selectedEntityType.type === "Eraser")
                 }
                 style={{
                   backgroundColor: colorPalette["Eraser"],
@@ -366,7 +469,7 @@ const MapEditor: React.FC = () => {
                   width: 110,
                   cursor: "pointer",
                   border:
-                    selectedEntity && selectedEntity.type === "Eraser"
+                    selectedEntityType && selectedEntityType.type === "Eraser"
                       ? "1px solid white"
                       : "1px solid transparent",
                 }}
@@ -380,12 +483,36 @@ const MapEditor: React.FC = () => {
                   setIsPaletteModalOpen(true);
                 }}
               />
+              <WrappedIcon
+                title="Edit default entity attributes"
+                icon={<DesignServicesIcon />}
+                callback={() => {
+                  setIsEditDefaultEntityAttributsModalOpen(true);
+                }}
+              />
             </Box>
           </div>
+          <p>Default attributes:</p>
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: "column",
+              paddingTop: "0px",
+              marginTop: "-15px",
+            }}
+          >
+            <ul style={{ listStyle: ""}}>
+              <li>Health: <span style={{ fontWeight: "bold", color: "cyan" }}>{defaultEntityAttributes.health}</span></li>
+              <li>Speed: <span style={{ fontWeight: "bold", color: "cyan" }}>{defaultEntityAttributes.speed}</span></li>
+              <li>Sprite: <span style={{ fontWeight: "bold", color: "cyan" }}>{defaultEntityAttributes.sprite}</span></li>
+              <li>Range: <span style={{ fontWeight: "bold", color: "cyan" }}>{defaultEntityAttributes.config.range || "None"}</span></li>
+            </ul>
+          </Box>
+
           <p>
             Selected entity:{" "}
             <span style={{ fontWeight: "bold", color: "red" }}>
-              {selectedEntity === null ? "None" : selectedEntity.type}
+              {selectedEntityType === null ? "None" : selectedEntityType.type}
             </span>
           </p>
         </div>
@@ -569,9 +696,13 @@ const MapEditor: React.FC = () => {
                   return (
                     <Box
                       key={tileIndex}
-                      onClick={() =>
-                        handleTileClick(roundSelectedIdx, threshold, height)
-                      }
+                      onClick={(e) => {
+                        if (e.ctrlKey) {
+                          handleCtrTileClick(roundSelectedIdx, key);
+                          return;
+                        }
+                        handleTileClick(roundSelectedIdx, threshold, height);
+                      }}
                       onMouseOver={(e) => {
                         if (e.buttons === 1) {
                           handleTileClick(roundSelectedIdx, threshold, height);

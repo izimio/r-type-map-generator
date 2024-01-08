@@ -6,7 +6,7 @@ import DriveFolderUploadIcon from "@mui/icons-material/DriveFolderUpload";
 interface ImportJsonModalProps {
   isOpen: boolean;
   onClose: () => void;
-  setRoundsContent: (jsonContent: string) => void;
+  setRoundsContent: (jsonContent: string) => boolean;
 }
 
 const ImportJsonModal: React.FC<ImportJsonModalProps> = ({
@@ -109,7 +109,11 @@ const ImportJsonModal: React.FC<ImportJsonModalProps> = ({
             <Button
               variant="outlined"
               onClick={() => {
-                setRoundsContent(jsonContent);
+                const res = setRoundsContent(jsonContent);
+                if (!res) {
+                  toast.error("Invalid JSON content!");
+                  return;
+                }
                 onClose();
                 toast.success("JSON content imported!");
               }}
