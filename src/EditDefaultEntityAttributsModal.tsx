@@ -57,6 +57,8 @@ const EditDefaultEntityAttributsModal: React.FC<
           },
         }}
       >
+        <h2 style={{ textAlign: "center" }}>Edit Default Entity Attributes</h2>
+
         <UpdateTileAttributes
           EntityAttributes={entityAttributes}
           setEntityAttributs={setEntityAttributes}

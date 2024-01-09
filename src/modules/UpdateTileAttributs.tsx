@@ -4,6 +4,8 @@ import { Box } from "@mui/material";
 import { SPRITES_NAMES } from "../utils/constants";
 import { IEntityAttributes } from "../EditDefaultEntityAttributsModal";
 
+// Icons
+
 interface IEditDefaultEntityAttributsModal {
   EntityAttributes: IEntityAttributes;
   setEntityAttributs: (entityAttributes: IEntityAttributes) => void;
@@ -53,12 +55,13 @@ const UpdateTileAttributes: React.FC<IEditDefaultEntityAttributsModal> = ({
         flexDirection: "column",
       }}
     >
-      <h2>Entity default attributs</h2>
-
       <label
         style={{
           marginRight: 10,
           marginBottom: "20px",
+          display: "flex",
+          alignItems: "center",
+
         }}
       >
         Health

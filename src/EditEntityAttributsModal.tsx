@@ -47,6 +47,7 @@ const EditEntityAttributsModal: React.FC<EditEntityAttributsModalProps> = ({
           },
         }}
       >
+        <h2 style={{ textAlign: "center" }}>Edit Entity Attributes</h2>
         <UpdateTileAttributes
           EntityAttributes={defaultEntityAttributes}
           setEntityAttributs={setEntityAttributes}

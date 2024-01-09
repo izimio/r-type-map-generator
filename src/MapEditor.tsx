@@ -55,6 +55,7 @@ interface Round {
 }
 
 interface JsonMap {
+  base_health: number;
   rounds:
     | [
         {
@@ -87,7 +88,7 @@ const MapEditor: React.FC = () => {
       },
     ];
   });
-
+  const [baseHealth, setBaseHealth] = useState<number>(5);
   const [selectedKey, setSelectedKey] = useState("");
   const [selectedEntityType, setselectedEntityType] =
     useState<EntityElement | null>(null);
@@ -168,6 +169,7 @@ const MapEditor: React.FC = () => {
 
   const exportToJson = () => {
     const cleanJson: JsonMap = {
+      base_health: baseHealth,
       rounds: [],
     };
     const maxRounds = rounds
@@ -191,6 +193,9 @@ const MapEditor: React.FC = () => {
       };
 
       for (const [, value] of Object.entries(idxRounds.entities)) {
+        if (!value.config.range) {
+          value.config = {};
+        }
         if (MONSTER_TYPES.includes(value.type)) {
           eachRound.ennemies.push(value);
         }
@@ -260,7 +265,10 @@ const MapEditor: React.FC = () => {
   const setRoundsFromText = (jsonContent: string): boolean => {
     try {
       const parsedJson = JSON.parse(jsonContent);
-
+      if (!parsedJson.rounds) {
+        return false;
+      }
+      setBaseHealth(parsedJson.base_health);
       const newObj = parsedJson.rounds.map((round: any) => {
         const entities: Record<string, Entity> = {};
         round.ennemies.forEach((entity: Entity) => {
@@ -492,20 +500,60 @@ const MapEditor: React.FC = () => {
               />
             </Box>
           </div>
-          <p>Default attributes:</p>
+          <h3
+            style={{
+              marginBottom: "-5px",
+            }}
+          >
+            Default attributes:
+          </h3>
           <Box
             sx={{
               display: "flex",
               flexDirection: "column",
-              paddingTop: "0px",
-              marginTop: "-15px",
             }}
           >
-            <ul style={{ listStyle: ""}}>
-              <li>Health: <span style={{ fontWeight: "bold", color: "cyan" }}>{defaultEntityAttributes.health}</span></li>
-              <li>Speed: <span style={{ fontWeight: "bold", color: "cyan" }}>{defaultEntityAttributes.speed}</span></li>
-              <li>Sprite: <span style={{ fontWeight: "bold", color: "cyan" }}>{defaultEntityAttributes.sprite}</span></li>
-              <li>Range: <span style={{ fontWeight: "bold", color: "cyan" }}>{defaultEntityAttributes.config.range || "None"}</span></li>
+            <ul style={{ listStyle: "" }}>
+              <li>
+                Health:{" "}
+                <span style={{ fontWeight: "bold", color: "cyan" }}>
+                  {defaultEntityAttributes.health}
+                </span>
+              </li>
+              <li>
+                Speed:{" "}
+                <span style={{ fontWeight: "bold", color: "cyan" }}>
+                  {defaultEntityAttributes.speed}
+                </span>
+              </li>
+              <li>
+                Sprite:{" "}
+                <span style={{ fontWeight: "bold", color: "cyan" }}>
+                  {defaultEntityAttributes.sprite}
+                </span>
+              </li>
+              <li>
+                Range:{" "}
+                <span style={{ fontWeight: "bold", color: "cyan" }}>
+                  {defaultEntityAttributes.config.range || "None"}
+                </span>
+              </li>
+              <li>
+                Player base Health: {" "}
+                <input
+                  type="number"
+                  min={1}
+                  value={baseHealth}
+                  placeholder="Player base health"
+                  onChange={(e) => {
+                    setBaseHealth(Number(e.target.value));
+                  }}
+                  style={{
+                    width: "39    px",
+                    margin: 0,
+                  }}
+                />
+              </li>
             </ul>
           </Box>
 
