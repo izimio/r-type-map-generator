@@ -42,6 +42,7 @@ export interface Entity {
   height: number;
   speed: number;
   health: number;
+  bonus: string[]
   sprite: string;
   config: {
     range?: number;
@@ -353,6 +354,7 @@ const MapEditor: React.FC = () => {
           speed: defaultEntityAttributes.speed,
           health: defaultEntityAttributes.health,
           sprite: defaultEntityAttributes.sprite,
+          bonus: defaultEntityAttributes.bonus,
           config: defaultEntityAttributes.config,
         },
       };
@@ -396,6 +398,7 @@ const MapEditor: React.FC = () => {
               health: selectedEntity.health,
               speed: selectedEntity.speed,
               sprite: selectedEntity.sprite,
+              bonus: selectedEntity.bonus,
               config: selectedEntity.config,
             }}
             setDefaultEntityAttributs={(
@@ -533,6 +536,12 @@ const MapEditor: React.FC = () => {
                 </span>
               </li>
               <li>
+                Bonus:{" "}
+                <span style={{ fontWeight: "bold", color: "cyan" }}>
+                  {defaultEntityAttributes.bonus.join(", ") || "None"}
+                </span>
+              </li>
+              <li>
                 Range:{" "}
                 <span style={{ fontWeight: "bold", color: "cyan" }}>
                   {defaultEntityAttributes.config.range || "None"}
@@ -549,7 +558,7 @@ const MapEditor: React.FC = () => {
                     setBaseHealth(Number(e.target.value));
                   }}
                   style={{
-                    width: "39    px",
+                    width: "39px",
                     margin: 0,
                   }}
                 />

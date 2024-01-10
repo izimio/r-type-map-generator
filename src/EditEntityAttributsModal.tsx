@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { Modal, Box, Button } from "@mui/material";
 import UpdateTileAttributes from "./modules/UpdateTileAttributs";
 import toast from "react-hot-toast";

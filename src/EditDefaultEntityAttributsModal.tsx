@@ -7,6 +7,7 @@ export interface IEntityAttributes {
   health: number;
   speed: number;
   sprite: string;
+  bonus: string[];
   config: {
     range?: number;
   };
@@ -29,7 +30,6 @@ const EditDefaultEntityAttributsModal: React.FC<
   const [entityAttributes, setEntityAttributes] = useState<IEntityAttributes>(
     defaultEntityAttributes
   );
-
   return (
     <Modal
       open={isOpen}
