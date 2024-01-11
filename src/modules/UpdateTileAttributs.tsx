@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Box, Icon } from "@mui/material";
 
 import { SPRITES_NAMES, ALL_BONUS, SMOOTH_ORANGE } from "../utils/constants";
-import { IEntityAttributes } from "../EditDefaultEntityAttributsModal";
+import { IEntityAttributes } from "../modals/EditDefaultEntityAttributsModal";
 
 import AllInclusiveIcon from "@mui/icons-material/AllInclusive";
 import HealthAndSafetyIcon from "@mui/icons-material/HealthAndSafety";

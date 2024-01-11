@@ -1,9 +1,11 @@
 // src/MapEditor.tsx
 import React, { useState, useEffect } from "react";
 import { Box } from "@mui/material";
-import JsonModal from "./JsonModal";
-import PaletteModal from "./ImportPaletModal";
-import WrappedIcon from "./Icon";
+import { useNavigate } from "react-router-dom";
+
+import JsonModal from "./modals/JsonModal";
+import PaletteModal from "./modals/ImportPaletModal";
+import WrappedIcon from "./modules/WrappedIcon";
 
 import CleaningServicesIcon from "@mui/icons-material/CleaningServices";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -12,6 +14,8 @@ import GetAppIcon from "@mui/icons-material/GetApp";
 import DataObjectIcon from "@mui/icons-material/DataObject";
 import BackspaceIcon from "@mui/icons-material/Backspace";
 import DesignServicesIcon from "@mui/icons-material/DesignServices";
+import AddPhotoAlternateIcon from "@mui/icons-material/AddPhotoAlternate";
+
 
 import {
   getLocalStorageItem,
@@ -24,13 +28,13 @@ import {
   SMOOTH_ORANGE,
   DEFAULT_ENTITY_ATTRIBUTES,
 } from "./utils/constants";
-import ConfirmeModal from "./ConfirmModal";
+import ConfirmeModal from "./modals/ConfirmModal";
 import toast from "react-hot-toast";
-import ImportJsonModal from "./ImportJsonModal";
+import ImportJsonModal from "./modals/ImportJsonModal";
 import EditDefaultEntityAttributsModal, {
   IEntityAttributes,
-} from "./EditDefaultEntityAttributsModal";
-import EditEntityAttributsModal from "./EditEntityAttributsModal";
+} from "./modals/EditDefaultEntityAttributsModal";
+import EditEntityAttributsModal from "./modals/EditEntityAttributsModal";
 
 interface ColorPalette {
   [key: string]: string;
@@ -42,7 +46,7 @@ export interface Entity {
   height: number;
   speed: number;
   health: number;
-  bonus: string[]
+  bonus: string[];
   sprite: string;
   config: {
     range?: number;
@@ -76,6 +80,7 @@ interface EntityElement {
 const getKey = (threshold: number, height: number) => `${threshold}:${height}`;
 
 const MapEditor: React.FC = () => {
+  const navigate = useNavigate();
   const [rounds, setRounds] = useState<Round[]>(() => {
     const roundsFromLocalStorage = getLocalStorageItem("rounds");
     if (roundsFromLocalStorage) {
@@ -364,6 +369,30 @@ const MapEditor: React.FC = () => {
   // ===============  Rounds functions  ===============
   return (
     <div>
+      <Box
+        sx={{
+          position: "absolute",
+          top: "20px",
+          right: "20px",
+          scale: "1.5",
+          "&:hover": {
+            cursor: "pointer",
+          },
+          "&:hover > *": {
+            color: SMOOTH_ORANGE
+          },
+        }}
+      >
+        <WrappedIcon
+          title="Sprite editor"
+          icon={<AddPhotoAlternateIcon sx={{
+            transition: "all 0.2s ease-in-out",
+          }}/>}
+          callback={() => {
+            navigate("/sprite");
+          }}
+        />
+      </Box>
       <div style={{ margin: 20 }}>
         <JsonModal
           isOpen={isJsonModalOpen}
@@ -548,7 +577,7 @@ const MapEditor: React.FC = () => {
                 </span>
               </li>
               <li>
-                Player base Health: {" "}
+                Player base Health:{" "}
                 <input
                   type="number"
                   min={1}
