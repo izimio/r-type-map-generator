@@ -65,7 +65,7 @@ interface JsonMap {
     | [
         {
           round: number;
-          ennemies: Entity[];
+          enemies: Entity[];
           obstacles: Entity[];
         }
       ]
@@ -190,11 +190,11 @@ const MapEditor: React.FC = () => {
       }
       const eachRound: {
         round: number;
-        ennemies: Entity[];
+        enemies: Entity[];
         obstacles: Entity[];
       } = {
         round: i + 1,
-        ennemies: [],
+        enemies: [],
         obstacles: [],
       };
 
@@ -203,7 +203,7 @@ const MapEditor: React.FC = () => {
           value.config = {};
         }
         if (MONSTER_TYPES.includes(value.type)) {
-          eachRound.ennemies.push(value);
+          eachRound.enemies.push(value);
         }
         if (value.type === "obstacles") {
           eachRound.obstacles.push(value);
@@ -277,14 +277,14 @@ const MapEditor: React.FC = () => {
       setBaseHealth(parsedJson.base_health);
       const newObj = parsedJson.rounds.map((round: any) => {
         const entities: Record<string, Entity> = {};
-        round.ennemies.forEach((entity: Entity) => {
+        round.enemies.forEach((entity: Entity) => {
           entities[getKey(entity.threshold, entity.height)] = entity;
         });
         round.obstacles.forEach((entity: Entity) => {
           entities[getKey(entity.threshold, entity.height)] = entity;
         });
         let maxThreshold = Math.max(
-          ...round.ennemies.map((entity: Entity) => entity.threshold),
+          ...round.enemies.map((entity: Entity) => entity.threshold),
           ...round.obstacles.map((entity: Entity) => entity.threshold)
         );
         if (
@@ -308,7 +308,6 @@ const MapEditor: React.FC = () => {
 
       return true;
     } catch (e) {
-      console.log(e);
       return false;
     }
   };
@@ -567,7 +566,11 @@ const MapEditor: React.FC = () => {
               <li>
                 Bonus:{" "}
                 <span style={{ fontWeight: "bold", color: "cyan" }}>
-                  {defaultEntityAttributes.bonus.join(", ") || "None"}
+                  {defaultEntityAttributes?.bonus !== undefined ? (
+                    defaultEntityAttributes.bonus.join(", ")
+                  ) : (
+                    "None"
+                  )}
                 </span>
               </li>
               <li>

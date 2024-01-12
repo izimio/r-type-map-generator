@@ -1,13 +1,12 @@
 import React, { useState } from "react";
-import { Modal, Box, Button, IconButton } from "@mui/material";
-import { Close } from "@mui/icons-material";
+import { Modal, Box, Button } from "@mui/material";
 import toast from "react-hot-toast";
-import { SMOOTH_ORANGE } from "../utils/constants";
-import WrappedIcon from "../modules/WrappedIcon";
+import { DANGER_RED, SMOOTH_ORANGE } from "../utils/constants";
 import { ImageInfos } from "../SpriteEditor";
 
 import HeightIcon from "@mui/icons-material/Height";
-import SettingsEthernetIcon from "@mui/icons-material/SettingsEthernet";
+import DriveFileRenameOutlineIcon from "@mui/icons-material/DriveFileRenameOutline";
+import FolderIcon from "@mui/icons-material/Folder";
 
 type Boundaries = {
   width: number;
@@ -17,25 +16,29 @@ type Boundaries = {
 interface ImageModalProps {
   isOpen: boolean;
   onClose: () => void;
+  imageInfos: ImageInfos;
   onImageChange: (newImageInfos: ImageInfos) => void;
 }
 
 const ImportImageModal: React.FC<ImageModalProps> = ({
   isOpen,
   onClose,
+  imageInfos,
   onImageChange,
 }) => {
-  const [selectedImage, setSelectedImage] = useState<string | null>(null);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
+
+  const [selectedImage, setSelectedImage] = useState<string | null>(imageInfos.path || null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(imageInfos.path || null);
   const [boundaries, setBoundaries] = useState<Boundaries>({
     width: 0,
     height: 0,
   });
+  const [imgName, setImgName] = useState<string>(imageInfos.name);
+  const [projectPath, setProjectPath] = useState<string>(imageInfos.projectPath);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    console.log(e.target.files);
     if (file) {
       const imageUrl = URL.createObjectURL(file);
       setSelectedImage(imageUrl);
@@ -65,6 +68,8 @@ const ImportImageModal: React.FC<ImageModalProps> = ({
         path: selectedImage,
         width: boundaries.width,
         height: boundaries.height,
+        name: imgName,
+        projectPath: projectPath,
       });
       onClose();
       toast.success("Image imported successfully");
@@ -124,10 +129,12 @@ const ImportImageModal: React.FC<ImageModalProps> = ({
               />
               <p
                 style={{
-                  color: SMOOTH_ORANGE,
+                  color: DANGER_RED,
                   textAlign: "center",
                   textDecoration: "underline",
                   cursor: "pointer",
+                  marginTop: "0px",
+                  padding: "0px",
                 }}
                 onClick={handleDeleteImage}
               >
@@ -137,8 +144,7 @@ const ImportImageModal: React.FC<ImageModalProps> = ({
                 sx={{
                   display: "flex",
                   alignItems: "center",
-                  gap: "10px",
-                  flexDirection: "column",
+                  gap: "20px",
                   justifyContent: "center",
                 }}
               >
@@ -172,6 +178,48 @@ const ImportImageModal: React.FC<ImageModalProps> = ({
                   <span>{boundaries.width}px</span>
                 </Box>
               </Box>
+              <Box
+                sx={{
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  marginBottom: "20px",
+                }}
+              >
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "10px",
+                  }}
+                >
+                  <DriveFileRenameOutlineIcon sx={{ color: SMOOTH_ORANGE }} />
+                  <input
+                    type="text"
+                    placeholder="Image name"
+                    value={imgName}
+                    onChange={(e) => setImgName(e.target.value)}
+                    style={{ width: "100%", padding: "10px", marginTop: "10px" }}
+                  />
+                </Box>
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "10px",
+                  }}
+                >
+                  <FolderIcon sx={{ color: SMOOTH_ORANGE }} />
+
+                  <input
+                    type="text"
+                    placeholder="Project path"
+                    value={projectPath}
+                    onChange={(e) => setProjectPath(e.target.value)}
+                    style={{ width: "100%", padding: "10px", marginTop: "10px" }}
+                  />
+                </Box>
+              </Box>
             </Box>
           )}
           {!previewUrl && (
@@ -199,7 +247,6 @@ const ImportImageModal: React.FC<ImageModalProps> = ({
             color="warning"
             onClick={() => {
               onClose();
-              handleDeleteImage();
             }}
           >
             Back
