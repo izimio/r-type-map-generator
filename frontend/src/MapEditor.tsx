@@ -35,6 +35,7 @@ import EditDefaultEntityAttributsModal, {
   IEntityAttributes,
 } from "./modals/EditDefaultEntityAttributsModal";
 import EditEntityAttributsModal from "./modals/EditEntityAttributsModal";
+import TitleBack from "./modules/Title";
 
 interface ColorPalette {
   [key: string]: string;
@@ -458,7 +459,7 @@ const MapEditor: React.FC = () => {
 
         {/* ============== end of modal ============ */}
 
-        <h1>R-TYPE | Map Editor</h1>
+        <TitleBack title="R-TYPE | Map Editor" />
         <div
           style={{
             marginBottom: "20px",

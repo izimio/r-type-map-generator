@@ -32,6 +32,7 @@ import Quadrillage from "./modules/Quadrillage";
 import PositionStyledInput from "./modules/positionStyledInput";
 import PaletteModal from "./modals/ImportPaletModal";
 import HitboxModal from "./modals/HitboxModal";
+import TitleBack from "./modules/Title";
 
 export interface ColorPalette {
   [key: string]: string;
@@ -318,7 +319,7 @@ const SpriteEditor: React.FC = () => {
           setImgInfos(newImageInfos);
         }}
       />
-      <h1>R-TYPE | Spritesheet Editor</h1>
+      <TitleBack title="R-TYPE | Spritesheet Editor" />
 
       <div>
         <h3>Animation Type</h3>
@@ -383,7 +384,7 @@ const SpriteEditor: React.FC = () => {
             />
           }
           callback={() => {
-            navigate("/");
+            navigate("/map");
           }}
         />
       </Box>
@@ -795,6 +796,17 @@ const SpriteEditor: React.FC = () => {
           </Box>
         )}
       </Box>
+      <p
+        style={{
+          textAlign: "center",
+        }}
+      >
+        Made with ❤️ by <a href="https://github.com/izimio">izimio</a>
+      </p>
+      <p style={{ textAlign: "center", fontSize: 11 }}>
+        R-Type 2024 - Paul Laban, Baptiste Leroyer, Loïs Maneux, Arthur Pahon,
+        Joshua Brionne
+      </p>
     </div>
   );
 };
